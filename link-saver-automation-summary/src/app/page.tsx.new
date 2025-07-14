@@ -1,0 +1,107 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import { FaSun, FaMoon } from "react-icons/fa";
+import { useTheme } from "next-themes";
+import { AuthGuard } from "@/components/AuthGuard";
+import BookmarkList from "@/components/bookmarks/BookmarkList";
+import Image from "next/image";
+
+export default function Home() {
+  const { data: session } = useSession();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // When mounted on client, we can show the UI
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <AuthGuard>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <header className="bg-white dark:bg-gray-800 shadow-sm">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Link Saver</h1>
+            
+            <div className="flex items-center space-x-4">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                aria-label="Toggle Dark Mode"
+              >
+                {mounted && theme === "dark" ? (
+                  <FaSun size={18} className="text-yellow-400" />
+                ) : (
+                  <FaMoon size={18} className="text-gray-600" />
+                )}
+              </button>
+              
+              {/* User Menu */}
+              {session ? (
+                <div className="relative group">
+                  <button className="flex items-center space-x-1 focus:outline-none">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{session.user?.email}</span>
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg overflow-hidden z-10 hidden group-hover:block">
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/signin" })}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex space-x-2">
+                  <Link
+                    href="/signin"
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-8">
+          {session ? (
+            <BookmarkList />
+          ) : (
+            <div className="max-w-4xl mx-auto text-center py-20">
+              <h2 className="text-3xl font-bold mb-6">Welcome to Link Saver + Auto-Summary</h2>
+              <p className="text-lg mb-8">
+                Save your favorite links with automatic summaries. Sign in to get started!
+              </p>
+              <div className="flex justify-center space-x-4">
+                <Link
+                  href="/signin"
+                  className="px-6 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-6 py-3 text-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </AuthGuard>
+  );
+}
